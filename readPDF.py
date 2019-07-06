@@ -11,6 +11,7 @@ class readPDF:
 
     def Data(self):
         rooms, nights, price = self.hotel_sell_price()
+    
         return {
             "Booking ID": 
                     self.__extract_data__("Booking ID - (.*?) .*"),
@@ -32,9 +33,32 @@ class readPDF:
             "Hotel Gross Price": 
                     self.__extract_data__("Hotel Gross Charges(\d+)"),
 
-            "MMT Commission": self.__extract_data__("MMT Commission(\d+)"),
+            "MMT Commission": 
+                    self.__extract_data__("MMT Commission(\d+)"),
             
-            "GST @ 18% (Including IGST or (SGST & CGST))": self.__extract_data__("\\(SGST & CGST\\)\\)(\d+)")
+            "GST @ 18% (Including IGST or (SGST & CGST))": 
+                    self.__extract_data__("\\(SGST & CGST\\)\\)(\d+)"),
+
+            "MMT to Pay Hotel (A-B)" : 
+                    self.__extract_data__("MMT to Pay Hotel \\(A-B\\)(\d+)"),
+                
+            "GST on hotel accommodation charges by Ecommerce Operator":
+                    self.__extract_data__("GST on hotel accommodation charges by Ecommerce Operator: (\d+)"),
+
+            "Primary Guest":
+                    self.guest_name(),
+            
+            "E-mail":
+                    self.email_id(),
+        
+            "Contact No":
+                    self.contact_no(),
+            
+            "Room Category":
+                    self.__extract_data__("Room Category : (.*?)Meal"),
+            
+            "Meal Plan":
+                    self.__extract_data__("Meal Plan : (.*?)Inclusions"),
         }
 
 
@@ -54,6 +78,17 @@ class readPDF:
         obj = re.search("Hotel Sell Price(\d) Room x (\d) Night(.*?)Extra",self.pdf_data)
         return obj.group(1), obj.group(2), obj.group(3)
     
+    def guest_name(self):
+        return self.__extract_data__("Primary Guest : (.*?)E-mail")
+
+    def email_id(self):
+        return self.__extract_data__("%sE-mail : (.*?)Contact" % self.guest_name())
+
+    def contact_no(self):
+        all_no = self.__extract_data__("%sContact Number : (.*?)Room" % self.email_id())
+        all_no = all_no.replace(',','')
+        return all_no.split()
+
     def __extract_data__(self,pattern):
         obj = re.search(pattern,self.pdf_data)
         return obj.group(1)
