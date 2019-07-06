@@ -1,7 +1,7 @@
 import PyPDF2
 import re
 
-class readPDF:
+class MMT_PDF_Parser:
     def __init__(self,pdf_file_loc):
         self.pdf_object = open(pdf_file_loc,'rb')
         self.pdf_reader = PyPDF2.PdfFileReader(self.pdf_object)
@@ -103,5 +103,5 @@ class readPDF:
 
 # Sample Usage
 if __name__ == '__main__':
-    pdfobj = readPDF("data.pdf")
+    pdfobj = MMT_PDF_Parser("data.pdf")
     print(pdfobj.Data()) 
