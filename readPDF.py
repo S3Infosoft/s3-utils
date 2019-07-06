@@ -12,20 +12,31 @@ class readPDF:
     def Data(self):
         rooms, nights, price = self.hotel_sell_price()
         return {
-            "Booking ID": self.BookingID(),
-            "No of nights": self.NoOfNights(),
+            "Booking ID": 
+                    self.__extract_data__("Booking ID - (.*?) .*"),
+
+            "No of nights":
+                    self.__extract_data__("INRBOOKING DETAILS(.*?) Night.*"),
+
+
             "Check In": self.checkin(),
             "Check Out": self.checkout(),
+
             "Room" : rooms,
             "Night" : nights,
             "Hotel Sell Price" : price,
+
+            "Extra Adult / Child Charge":
+                    self.__extract_data__("Adult / Child Charges(\d+)(A)*"),
+
+            "Hotel Gross Price": 
+                    self.__extract_data__("Hotel Gross Charges(\d+)"),
+
+            "MMT Commission": self.__extract_data__("MMT Commission(\d+)"),
+            
+            "GST @ 18% (Including IGST or (SGST & CGST))": self.__extract_data__("\\(SGST & CGST\\)\\)(\d+)")
         }
 
-    def BookingID(self):
-        return self.__extract_data__("Booking ID - (.*?) .*")
-
-    def NoOfNights(self):
-        return self.__extract_data__("INRBOOKING DETAILS(.*?) Night.*")
 
     def checkin(self):
        datetime = self.__extract_data__("Check In(.*?)Check Out")
@@ -42,7 +53,7 @@ class readPDF:
     def hotel_sell_price(self):
         obj = re.search("Hotel Sell Price(\d) Room x (\d) Night(.*?)Extra",self.pdf_data)
         return obj.group(1), obj.group(2), obj.group(3)
-
+    
     def __extract_data__(self,pattern):
         obj = re.search(pattern,self.pdf_data)
         return obj.group(1)
