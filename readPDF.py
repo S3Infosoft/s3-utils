@@ -10,11 +10,15 @@ class readPDF:
             self.pdf_data += self.__page_data__(page_num)
 
     def Data(self):
+        rooms, nights, price = self.hotel_sell_price()
         return {
             "Booking ID": self.BookingID(),
             "No of nights": self.NoOfNights(),
             "Check In": self.checkin(),
             "Check Out": self.checkout(),
+            "Room" : rooms,
+            "Night" : nights,
+            "Hotel Sell Price" : price,
         }
 
     def BookingID(self):
@@ -35,6 +39,10 @@ class readPDF:
        return "%s:%s%s %s-%s-%s" % (obj.group(4),obj.group(5),obj.group(6),
                                     obj.group(1),obj.group(2),obj.group(3))
 
+    def hotel_sell_price(self):
+        obj = re.search("Hotel Sell Price(\d) Room x (\d) Night(.*?)Extra",self.pdf_data)
+        return obj.group(1), obj.group(2), obj.group(3)
+
     def __extract_data__(self,pattern):
         obj = re.search(pattern,self.pdf_data)
         return obj.group(1)
@@ -47,8 +55,7 @@ class readPDF:
         pages_count = self.pdf_reader.numPages
         return pages_count
 
-## Sample Usage
-#
-# if __name__ == '__main__':
-#     pdfobj = readPDF("PDF_LOCATION")
-#     print(pdfobj.Data()) 
+# Sample Usage
+if __name__ == '__main__':
+    pdfobj = readPDF("data.pdf")
+    print(pdfobj.Data()) 
