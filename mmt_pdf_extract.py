@@ -102,6 +102,6 @@ class MMT_PDF_Parser:
         return pages_count
 
 # Sample Usage
-if __name__ == '__main__':
-    pdfobj = MMT_PDF_Parser("data.pdf")
-    print(pdfobj.Data()) 
+#if __name__ == '__main__':
+#    pdfobj = MMT_PDF_Parser("data.pdf")
+#    print(pdfobj.Data()) 
