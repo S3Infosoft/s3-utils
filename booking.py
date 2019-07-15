@@ -81,14 +81,17 @@ class ParseHotel:
         hotel_list = {}
         for content in containers:
             content_soup = BeautifulSoup(str(content),'html.parser')
-            Price = content_soup.find('div',attrs={'bui-price-display__value'})
+            Price_obj = content_soup.find('div',attrs={'bui-price-display__value'})
             i = content_soup.find('a',attrs={'hotel_name_link'})
+            
             Name = content_soup.find('span',attrs={'sr-hotel__name'}).text.strip()
             URL = i.get('href').strip()
             
+            Price_soup = BeautifulSoup(str(Price_obj),'html.parser')
+
             data = {
                 'URL' : URL,
-                'Price' : Price,
+                'Price' : Price_soup.text.strip().replace('₹\xa0',''),
             }
             hotel_list[Name] = data
         return hotel_list
