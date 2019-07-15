@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 Data = {
     'URL' : 'https://www.booking.com',
-    'Search' : 'Ganputipule',
+    'Search' : 'Ratnagiri',
     'CheckIn': {
         'Date' : '16',
         'Month': '07',
@@ -54,7 +54,7 @@ class Browser:
         self.browser.set_handle_refresh(False)
         self.browser.addheaders = [('User-agent','Firefox')]
 
-class ParseHotel:
+class Bookingdotcom:
 
     def load_page(self,config):
         self.config = config
@@ -105,6 +105,14 @@ class ParseHotel:
         loc = url.find(option) + len(option) + 1
         return url[:loc] + value + url[loc:]
 
-hd = ParseHotel()
+class Hotel:
+    def __init__(self,url):
+        session = requests_html.HTMLSession()
+        response = session.get(url)
+        response.html.render()
+        self.page_data = response.text
+        self.soup = BeautifulSoup(self.page_data, 'html.parser')
+
+hd = Bookingdotcom()
 hd.load_page(Data)
 print(hd.list_hotels())
