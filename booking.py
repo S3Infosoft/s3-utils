@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import mechanize
 import requests
-import regex
+from bs4 import BeautifulSoup
 
 class Browser:
 
@@ -44,6 +44,19 @@ class Browser:
         self.browser.set_handle_refresh(False)
         self.browser.addheaders = [('User-agent','Firefox')]
 
+class ParseHotel:
+    def __init__(self,page_data):
+        self.page_data = page_data
+        self.soup = BeautifulSoup(self.page_data,'html.parser')
+
+    def list_hotels(self):
+        hotels = self.soup.find_all('a',attrs={'class':'hotel_name_link'})
+        hotel_list={}
+        for i in hotels:
+            hotel_list[i.find('span',attrs={'sr-hotel__name'}).text.strip()] =  i.get('href').replace('\n','')
+
+        return hotel_list
+
 
 Data = {
     'form': {
@@ -84,20 +97,3 @@ Data = {
     },
 }
 
-url = 'https://www.booking.com/'
-
-#browser = Browser(Data,url)
-
-#print(browser.__list_forms__())
-#browser.__select_from_by_pos__(0)
-#print(browser.__list_control__())
-#browser.__select_control__('ss','Ganpatipule')
-#rsp = browser.browser.submit()
-
-#data = requests.get(rsp.geturl())
-#_page_data_ = data.text
-#print(_page_data_)
-#_page_data_ =  ''.join(open("text.html","r").readlines())
-#print(_page_data_)
-#r = regex.findall(r'title="(.*?)"',_page_data_)
-#print(r)
