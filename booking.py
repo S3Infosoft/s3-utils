@@ -5,25 +5,19 @@ from bs4 import BeautifulSoup
 
 class Browser:
 
-    def __init__(self,config,url):
+    def __init__(self,url):
         self.browser = mechanize.Browser()
         self.__config_browser__()
         self.response = self.browser.open(url)
-        self.config = config
-    
-    def load(self): 
-        if self.__select_form__() == -1: return -1
-
-        for i in self.config['controls']:
-            ctrn = self.browser.form.find_control(i['name'])
-            
-
+         
     
     def __select_form_by_name__(self,name):
         self.browser.select_form(name)
+        self.browser.form.set_all_readonly(False)
 
     def __select_from_by_pos__(self,pos):
         self.browser.form = list(self.browser.forms())[pos]
+        self.browser.form.set_all_readonly(False)
 
     def __select_control__(self,control,value):
         self.browser[control] = value
@@ -45,8 +39,22 @@ class Browser:
         self.browser.addheaders = [('User-agent','Firefox')]
 
 class ParseHotel:
-    def __init__(self,page_data):
-        self.page_data = page_data
+
+    def load_page(self,config):
+        self.br = Browser(config['URL'])
+        self.br.__select_from_by_pos__(0)
+        self.br.__select_control__('ss',config['Search'])
+        response = self.br.browser.submit()
+        url = response.geturl()
+        url = self.__fill_option__(url,'checkin_year',config['CheckIn']['Year'])
+        url = self.__fill_option__(url,'checkin_month',config['CheckIn']['Month'])
+        url = self.__add_option__(url,'checkin_monthday=%s&'%(config['CheckIn']['Date']),'checkin_month',3)
+
+        url = self.__fill_option__(url,'checkout_year',config['CheckOut']['Year'])
+        url = self.__fill_option__(url,'checkout_month',config['CheckOut']['Month'])
+        url = self.__add_option__(url,'checkout_monthday=%s&'%config['CheckOut']['Date'],'checkout_month',3)
+
+        self.page_data = requests.get(url).text
         self.soup = BeautifulSoup(self.page_data,'html.parser')
 
     def list_hotels(self):
@@ -57,43 +65,30 @@ class ParseHotel:
 
         return hotel_list
 
+    def __add_option__(self,url,option,after,space):
+        loc = url.find(after) + len(after) + space + 1
+        return url[:loc] + option + url[loc:]
+    
+    def __fill_option__(self,url,option,value):
+        loc = url.find(option) + len(option) + 1
+        return url[:loc] + value + url[loc:]
 
 Data = {
-    'form': {
-        'search_by': 'pos',
-        'pos': 0
+    'URL' : 'https://www.booking.com/',
+    'Search' : 'Ganputipule',
+    'CheckIn': {
+        'Date' : '16',
+        'Month': '07',
+        'Year' : '2019',
     },
-
-    'controls' : {
-        'control1': {
-            'name': 'ss',
-            'value': 'mangovalley',
-        },
-
-        'control2': {
-            'name': 'checkin_year',
-            'value': '2019',
-        },
-
-        'control3': {
-            'name': 'checkin_month',
-            'value': '5',
-        },
-
-        'control4': {
-            'name': 'checkout_year',
-            'value': '',
-        },
-
-        'control5': {
-            'name': 'checkout_month',
-            'type': 'hidden',
-        },
-
-        'control6': {
-            'name': 'checkout_month',
-            'type': 'select'
-        },
+    'CheckOut': {
+        'Date': '18',
+        'Month': '07',
+        'Year': '2019',
     },
 }
 
+
+hd = ParseHotel()
+hd.load_page(Data)
+print(hd.list_hotels())
