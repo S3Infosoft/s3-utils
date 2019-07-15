@@ -5,7 +5,7 @@ import regex
 from bs4 import BeautifulSoup
 
 Data = {
-    'URL' : 'https://www.booking.com/',
+    'URL' : 'https://www.booking.com',
     'Search' : 'Ganputipule',
     'CheckIn': {
         'Date' : '16',
@@ -57,18 +57,19 @@ class Browser:
 class ParseHotel:
 
     def load_page(self,config):
-        self.br = Browser(config['URL'])
+        self.config = config
+        self.br = Browser(self.config['URL'])
         self.br.__select_from_by_pos__(0)
-        self.br.__select_control__('ss',config['Search'])
+        self.br.__select_control__('ss',self.config['Search'])
         response = self.br.browser.submit()
         url = response.geturl()
-        url = self.__fill_option__(url,'checkin_year',config['CheckIn']['Year'])
-        url = self.__fill_option__(url,'checkin_month',config['CheckIn']['Month'])
-        url = self.__add_option__(url,'checkin_monthday=%s&'%(config['CheckIn']['Date']),'checkin_month',3)
+        url = self.__fill_option__(url,'checkin_year',self.config['CheckIn']['Year'])
+        url = self.__fill_option__(url,'checkin_month',self.config['CheckIn']['Month'])
+        url = self.__add_option__(url,'checkin_monthday=%s&'%(self.config['CheckIn']['Date']),'checkin_month',3)
 
-        url = self.__fill_option__(url,'checkout_year',config['CheckOut']['Year'])
-        url = self.__fill_option__(url,'checkout_month',config['CheckOut']['Month'])
-        url = self.__add_option__(url,'checkout_monthday=%s&'%config['CheckOut']['Date'],'checkout_month',3)
+        url = self.__fill_option__(url,'checkout_year',self.config['CheckOut']['Year'])
+        url = self.__fill_option__(url,'checkout_month',self.config['CheckOut']['Month'])
+        url = self.__add_option__(url,'checkout_monthday=%s&'%self.config['CheckOut']['Date'],'checkout_month',3)
         self.url = url
         s = requests_html.HTMLSession()
         r = s.get(self.url)
@@ -90,7 +91,7 @@ class ParseHotel:
             Price_soup = BeautifulSoup(str(Price_obj),'html.parser')
 
             data = {
-                'URL' : URL,
+                'URL' : self.config['URL'] + URL,
                 'Price' : Price_soup.text.strip().replace('₹\xa0',''),
             }
             hotel_list[Name] = data
