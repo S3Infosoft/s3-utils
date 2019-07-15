@@ -1,7 +1,23 @@
 #!/usr/bin/env python3
 import mechanize
-import requests
+import requests_html
+import regex
 from bs4 import BeautifulSoup
+
+Data = {
+    'URL' : 'https://www.booking.com/',
+    'Search' : 'Ganputipule',
+    'CheckIn': {
+        'Date' : '16',
+        'Month': '07',
+        'Year' : '2019',
+    },
+    'CheckOut': {
+        'Date': '18',
+        'Month': '07',
+        'Year': '2019',
+    },
+}
 
 class Browser:
 
@@ -53,16 +69,28 @@ class ParseHotel:
         url = self.__fill_option__(url,'checkout_year',config['CheckOut']['Year'])
         url = self.__fill_option__(url,'checkout_month',config['CheckOut']['Month'])
         url = self.__add_option__(url,'checkout_monthday=%s&'%config['CheckOut']['Date'],'checkout_month',3)
-
-        self.page_data = requests.get(url).text
+        self.url = url
+        s = requests_html.HTMLSession()
+        r = s.get(self.url)
+        r.html.render()
+        self.page_data = r.text
         self.soup = BeautifulSoup(self.page_data,'html.parser')
 
     def list_hotels(self):
-        hotels = self.soup.find_all('a',attrs={'class':'hotel_name_link'})
-        hotel_list={}
-        for i in hotels:
-            hotel_list[i.find('span',attrs={'sr-hotel__name'}).text.strip()] =  i.get('href').replace('\n','')
-
+        containers = self.soup.find_all('div',attrs={'sr_item_new'})
+        hotel_list = {}
+        for content in containers:
+            content_soup = BeautifulSoup(str(content),'html.parser')
+            Price = content_soup.find('div',attrs={'bui-price-display__value'})
+            i = content_soup.find('a',attrs={'hotel_name_link'})
+            Name = content_soup.find('span',attrs={'sr-hotel__name'}).text.strip()
+            URL = i.get('href').strip()
+            
+            data = {
+                'URL' : URL,
+                'Price' : Price,
+            }
+            hotel_list[Name] = data
         return hotel_list
 
     def __add_option__(self,url,option,after,space):
@@ -72,22 +100,6 @@ class ParseHotel:
     def __fill_option__(self,url,option,value):
         loc = url.find(option) + len(option) + 1
         return url[:loc] + value + url[loc:]
-
-Data = {
-    'URL' : 'https://www.booking.com/',
-    'Search' : 'Ganputipule',
-    'CheckIn': {
-        'Date' : '16',
-        'Month': '07',
-        'Year' : '2019',
-    },
-    'CheckOut': {
-        'Date': '18',
-        'Month': '07',
-        'Year': '2019',
-    },
-}
-
 
 hd = ParseHotel()
 hd.load_page(Data)
