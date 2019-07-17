@@ -8,16 +8,18 @@ Data = {
     'URL' : 'https://www.booking.com',
     'Search' : 'Ratnagiri',
     'CheckIn': {
-        'Date' : '16',
+        'Date' : '18',
         'Month': '07',
         'Year' : '2019',
     },
     'CheckOut': {
-        'Date': '18',
+        'Date': '20',
         'Month': '07',
         'Year': '2019',
     },
 }
+
+session = requests_html.HTMLSession()
 
 class Browser:
 
@@ -71,15 +73,13 @@ class Bookingdotcom:
         url = self.__fill_option__(url,'checkout_month',self.config['CheckOut']['Month'])
         url = self.__add_option__(url,'checkout_monthday=%s&'%self.config['CheckOut']['Date'],'checkout_month',3)
         self.url = url
-        s = requests_html.HTMLSession()
-        r = s.get(self.url)
+        r = session.get(self.url)
         r.html.render()
         self.page_data = r.text
         self.soup = BeautifulSoup(self.page_data,'html.parser')
 
-    def list_hotels(self):
         containers = self.soup.find_all('div',attrs={'sr_item_new'})
-        hotel_list = {}
+        self.hotel_list = {}
         for content in containers:
             content_soup = BeautifulSoup(str(content),'html.parser')
             Price_obj = content_soup.find('div',attrs={'bui-price-display__value'})
@@ -94,8 +94,17 @@ class Bookingdotcom:
                 'URL' : self.config['URL'] + URL,
                 'Price' : Price_soup.text.strip().replace('₹\xa0',''),
             }
-            hotel_list[Name] = data
-        return hotel_list
+            self.hotel_list[Name] = data
+        return self.hotel_list
+
+    
+    def hotel_details(self,hotelname):
+        request = session.get(self.hotel_list[hotelname]['URL'])
+        soup = BeautifulSoup(request.text,'lxml')
+
+        Table = soup.find('table',attrs={'hprt-table-long-language'})
+        return Table
+
 
     def __add_option__(self,url,option,after,space):
         loc = url.find(after) + len(after) + space + 1
@@ -107,12 +116,19 @@ class Bookingdotcom:
 
 class Hotel:
     def __init__(self,url):
-        session = requests_html.HTMLSession()
         response = session.get(url)
         response.html.render()
         self.page_data = response.text
         self.soup = BeautifulSoup(self.page_data, 'html.parser')
-
+'''
 hd = Bookingdotcom()
 hd.load_page(Data)
-print(hd.list_hotels())
+print(hd.hotel_details('Mango Valley Resort Ganpatipule'))
+'''
+
+cotnt = ''.join(open('table.data','r'))
+
+soup = BeautifulSoup(cotnt,'html.parser')
+trh = soup.find_all('th')
+for h in trh:
+    print(h.text.strip().replace('\n',''))
