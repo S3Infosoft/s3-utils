@@ -3,9 +3,10 @@ import mechanize
 import requests_html
 import regex
 from bs4 import BeautifulSoup
-
+from datetime import datetime
 Data = {
     'URL' : 'https://www.booking.com',
+    'Hotel' : 'Mango Valley Resort Ganpatipule',
     'Search' : 'Ratnagiri',
     'CheckIn': {
         'Date' : '18',
@@ -58,7 +59,7 @@ class Browser:
 
 class Bookingdotcom:
 
-    def load_page(self,config):
+    def GetResponse(self,config):
         self.config = config
         self.br = Browser(self.config['URL'])
         self.br.__select_from_by_pos__(0)
@@ -80,6 +81,8 @@ class Bookingdotcom:
 
         containers = self.soup.find_all('div',attrs={'sr_item_new'})
         self.hotel_list = {}
+        self.pos = 0
+        notfound = True
         for content in containers:
             content_soup = BeautifulSoup(str(content),'html.parser')
             Price_obj = content_soup.find('div',attrs={'bui-price-display__value'})
@@ -89,17 +92,18 @@ class Bookingdotcom:
             URL = i.get('href').strip()
             
             Price_soup = BeautifulSoup(str(Price_obj),'html.parser')
+            if Name != config['Hotel'] and notfound:
+                self.pos += 1
+            else:
+                notfound = False
 
             data = {
                 'URL' : self.config['URL'] + URL,
                 'Price' : Price_soup.text.strip().replace('₹\xa0',''),
             }
             self.hotel_list[Name] = data
-        return self.hotel_list
 
-    
-    def DetailRooms(self,hotelname):
-        request = session.get(self.hotel_list[hotelname]['URL'])
+        request = session.get(self.hotel_list[config['Hotel']]['URL'])
         soup = BeautifulSoup(request.text,'lxml')
 
         self.RoomsDetails = []
@@ -121,7 +125,13 @@ class Bookingdotcom:
                 }
                 self.RoomsDetails.append(table_row_data)
             
-        return self.RoomsDetails
+        now = datetime.now()
+        return {
+            'RoomDetails' : self.RoomsDetails,
+            'ota' : 'Booking',
+            'runtime' : now.strftime("%y-%m-%d %H:%M:%S"),
+            'Position' : self.pos
+        }
 
 
     def __add_option__(self,url,option,after,space):
@@ -139,8 +149,5 @@ class Hotel:
         self.page_data = response.text
         self.soup = BeautifulSoup(self.page_data, 'html.parser')
 
-hd = Bookingdotcom()
-hd.load_page(Data)
-print(hd.DetailRooms('Mango Valley Resort Ganpatipule'))
-
-            
+#hd = Bookingdotcom()
+#print(hd.GetResponse(Data))
