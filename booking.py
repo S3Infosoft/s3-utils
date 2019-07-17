@@ -98,12 +98,30 @@ class Bookingdotcom:
         return self.hotel_list
 
     
-    def hotel_details(self,hotelname):
+    def DetailRooms(self,hotelname):
         request = session.get(self.hotel_list[hotelname]['URL'])
         soup = BeautifulSoup(request.text,'lxml')
 
-        Table = soup.find('table',attrs={'hprt-table-long-language'})
-        return Table
+        self.RoomsDetails = []
+
+        for row in soup.find_all('tr'):
+            Accommodation_Type = row.find('span',attrs={'hprt-roomtype-icon-link'})
+            if Accommodation_Type is not None:
+                Accommodation_Type = Accommodation_Type.text.strip()
+
+                facilities = row.find_all('span',attrs={'hprt-facilities-facility'})
+                ExtraCols = row.find_all('td',attrs={'hprt-table-cell'})
+                ExtraColsData = [ col.text.strip().replace('\n','').replace('\xa0','') for col in ExtraCols[1:]]
+
+                table_row_data = {
+                    'Accommodation Type': Accommodation_Type,
+                    'Facilities' : [fac.text.strip().replace('• ','') for fac in facilities],
+                    'Max Person' : ExtraColsData[0].replace('Max persons: ',''),
+                    'Price' : ExtraColsData[1].replace(' includes taxes and charges','')
+                }
+                self.RoomsDetails.append(table_row_data)
+            
+        return self.RoomsDetails
 
 
     def __add_option__(self,url,option,after,space):
@@ -120,15 +138,9 @@ class Hotel:
         response.html.render()
         self.page_data = response.text
         self.soup = BeautifulSoup(self.page_data, 'html.parser')
-'''
+
 hd = Bookingdotcom()
 hd.load_page(Data)
-print(hd.hotel_details('Mango Valley Resort Ganpatipule'))
-'''
+print(hd.DetailRooms('Mango Valley Resort Ganpatipule'))
 
-cotnt = ''.join(open('table.data','r'))
-
-soup = BeautifulSoup(cotnt,'html.parser')
-trh = soup.find_all('th')
-for h in trh:
-    print(h.text.strip().replace('\n',''))
+            
