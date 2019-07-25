@@ -1,5 +1,6 @@
 from selenium import webdriver
 from time import sleep
+from bs4 import BeautifulSoup
 data = {
     "place" : "Ganpatipule",
 
@@ -21,7 +22,20 @@ data = {
 }
 
 
-class Goibibo:
+class MMT:
+    def __init__(self,data):
+        self.data = data
+        self.url = self.__gen_url__(data)
+        self.browser = Browser()
+        self.pagecontent = self.browser.Load(self.url)
+
+        self.soup = BeautifulSoup(self.pagecontent,'html.parser')
+        self.Hotels = self.soup.find_all('div',attrs={'listingRow'})
+        for hotel in self.Hotels:
+            hotel_name = hotel.find('p',attrs={'appendBottom12'}).text.strip()
+            print(hotel_name)
+
+
     def __gen_url__(self,url_data):
         return 'https://www.makemytrip.com/hotels/hotel-listing/?checkin=%s%s%s&checkout=%s%s%s&roomStayQualifier=2e0e&city=XGP&country=IN&type=CTY&searchText=%s' % (
             url_data['checkin']['month'],
@@ -50,3 +64,4 @@ class Browser:
         return self.browser.page_source
 
 
+m = MMT(data)
