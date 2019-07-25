@@ -3,7 +3,7 @@ from time import sleep
 from bs4 import BeautifulSoup
 data = {
     "place" : "Ganpatipule",
-
+    "hotel" : 'Mango Valley Resort Ganpatipule',
     "checkin" : {
         "date" : "28",
         "month" : "07",
@@ -28,12 +28,27 @@ class MMT:
         self.url = self.__gen_url__(data)
         self.browser = Browser()
         self.pagecontent = self.browser.Load(self.url)
-
         self.soup = BeautifulSoup(self.pagecontent,'html.parser')
-        self.Hotels = self.soup.find_all('div',attrs={'listingRow'})
+        self.Hotels = self.soup.find_all('a',attrs={'class':''})
+        i = 0
+        self.AllHotels = {}
         for hotel in self.Hotels:
-            hotel_name = hotel.find('p',attrs={'appendBottom12'}).text.strip()
-            print(hotel_name)
+            try:
+                hotel_name = hotel.find('p',attrs={'appendBottom12'}).text.strip()
+                hotel_url  = hotel.get('href')
+                i += 1
+                self.AllHotels[hotel_name] = {
+                    'url' : hotel_url,
+                    'pos' : i,
+                }
+            except AttributeError:
+                pass
+    
+    def GetResponse(self):
+        selected_url = self.AllHotels[self.data['hotel']]
+        self.hotelpagecontent = self.browser.Load('https://www.makemytrip.com/' + selected_url)
+        self.hotelsoup = BeautifulSoup(self.hotelpagecontent,'lxml')
+
 
 
     def __gen_url__(self,url_data):
@@ -65,3 +80,18 @@ class Browser:
 
 
 m = MMT(data)
+
+'''
+pg_file = open('test.html','r').read()
+
+soup = BeautifulSoup(pg_file,'html.parser')
+
+lists = soup.find_all('a',attrs={'class':''})
+for i in lists:
+    try:
+        hotel_name = i.find('p',attrs={'appendBottom12'}).text.strip()
+        print(hotel_name)
+    except AttributeError:
+        pass
+
+'''
