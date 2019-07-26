@@ -1,6 +1,7 @@
 from selenium import webdriver
 from time import sleep
 from bs4 import BeautifulSoup
+import sys
 data = {
     "place" : "Ganpatipule",
     "hotel" : 'Mango Valley Resort Ganpatipule',
@@ -45,7 +46,7 @@ class MMT:
                 pass
     
     def GetResponse(self):
-        selected_url = self.AllHotels[self.data['hotel']]
+        selected_url = self.AllHotels[self.data['hotel']]['url']
         self.hotelpagecontent = self.browser.Load('https://www.makemytrip.com/' + selected_url)
         self.hotelsoup = BeautifulSoup(self.hotelpagecontent,'lxml')
 
@@ -67,31 +68,22 @@ class MMT:
 class Browser:
     def __init__(self):
         self.opt = webdriver.FirefoxOptions()
-        #self.opt.headless = True
+        self.opt.headless = True
         self.opt.add_argument('--ignore-certificate-errors')
         self.opt.add_argument('--test-type')
         self.opt.binary = '/usr/bin/firefox'
     
     def Load(self,url):
-        self.browser = webdriver.Firefox(firefox_options=self.opt)
+        self.browser = webdriver.Firefox(options=self.opt)
         self.browser.get(url)
         sleep(2)
         return self.browser.page_source
 
 
 m = MMT(data)
-
-'''
-pg_file = open('test.html','r').read()
-
-soup = BeautifulSoup(pg_file,'html.parser')
-
-lists = soup.find_all('a',attrs={'class':''})
-for i in lists:
-    try:
-        hotel_name = i.find('p',attrs={'appendBottom12'}).text.strip()
-        print(hotel_name)
-    except AttributeError:
-        pass
-
-'''
+if data['hotel'] in m.AllHotels:
+    print("Found %s at pos : %d" % ( data['hotel'],m.AllHotels[data['hotel']]['pos']))
+else:
+    print('Unable to find %s on page 1'%data['hotel'])
+    sys.exit(1)
+m.GetResponse()
