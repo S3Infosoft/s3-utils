@@ -2,6 +2,7 @@ from selenium import webdriver
 from time import sleep
 from bs4 import BeautifulSoup
 import sys
+from datetime import datetime
 data = {
     "place" : "Ganpatipule",
     "hotel" : 'Mango Valley Resort Ganpatipule',
@@ -39,16 +40,46 @@ class MMT:
                 hotel_url  = hotel.get('href')
                 i += 1
                 self.AllHotels[hotel_name] = {
-                    'url' : hotel_url,
+                    'url' : 'https:' + hotel_url,
                     'pos' : i,
                 }
             except AttributeError:
                 pass
     
     def GetResponse(self):
-        self.selected_url = self.AllHotels[self.data['hotel']]
+        self.selected_url = self.AllHotels[data['hotel']]['url']
+        pos = self.AllHotels[data['hotel']]['pos']
         self.hotelpagecontent = self.browser.Load(self.selected_url)
-        self.hotelsoup = BeautifulSoup(self.hotelpagecontent,'lxml')
+        self.hotelsoup = BeautifulSoup(self.hotelpagecontent,'html.parser')
+        self.content = self.hotelsoup.find_all('div',attrs={'roomWrap'})
+        now = datetime.now()
+        self.Response = {
+            'position' : pos,
+            'ota' : 'mmt',
+            'runtime' : now.strftime("%y-%m-%d %H:%M:%S"),
+            'Data' : {
+
+            },
+        }
+        for row in self.content:
+            left = row.find('div',attrs={'roomLeft'})
+            RoomType = left.find('h2').text.strip()
+            FeatureSoup = left.find_all('li')
+            RoomFeatures = [f.text.strip() for f in FeatureSoup]
+            self.Response['Data'][RoomType] = {
+                'features' : RoomFeatures,
+            }
+            right = row.find_all('div',attrs={'roomRight'})
+            for r in right:
+                optsSoup = r.find_all('div',attrs={'bdrBottom'})
+                for j in optsSoup:
+                    a = [x.text.strip() for x in j.find_all('span')]
+                    options = a[1:]
+                    options.remove('')
+                    self.Response['Data'][RoomType][a[0]] = options
+
+        return self.Response
+
 
 
 
@@ -78,10 +109,6 @@ class Browser:
         self.browser.get(url)
         sleep(2)
         return self.browser.page_source
-'''
-pg = open('test.html','r').read()
-soup = BeautifulSoup(pg,'html.parser')
-'''
 
 m = MMT(data)
-print(m.AllHotels[data['hotel']]['url'][2:])
+response = m.GetResponse()
