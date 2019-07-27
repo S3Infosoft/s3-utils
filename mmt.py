@@ -46,8 +46,8 @@ class MMT:
                 pass
     
     def GetResponse(self):
-        selected_url = self.AllHotels[self.data['hotel']]['url']
-        self.hotelpagecontent = self.browser.Load('https://www.makemytrip.com/' + selected_url)
+        self.selected_url = self.AllHotels[self.data['hotel']]
+        self.hotelpagecontent = self.browser.Load(self.selected_url)
         self.hotelsoup = BeautifulSoup(self.hotelpagecontent,'lxml')
 
 
@@ -74,16 +74,14 @@ class Browser:
         self.opt.binary = '/usr/bin/firefox'
     
     def Load(self,url):
-        self.browser = webdriver.Firefox(options=self.opt)
+        self.browser = webdriver.Firefox(executable_path="./driver/geckodriver", options=self.opt)
         self.browser.get(url)
         sleep(2)
         return self.browser.page_source
-
+'''
+pg = open('test.html','r').read()
+soup = BeautifulSoup(pg,'html.parser')
+'''
 
 m = MMT(data)
-if data['hotel'] in m.AllHotels:
-    print("Found %s at pos : %d" % ( data['hotel'],m.AllHotels[data['hotel']]['pos']))
-else:
-    print('Unable to find %s on page 1'%data['hotel'])
-    sys.exit(1)
-m.GetResponse()
+print(m.AllHotels[data['hotel']]['url'][2:])
