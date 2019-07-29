@@ -3,21 +3,24 @@ import mechanize
 import requests_html
 import regex
 from bs4 import BeautifulSoup
-
+from datetime import datetime
 Data = {
     'URL' : 'https://www.booking.com',
+    'Hotel' : 'Mango Valley Resort Ganpatipule',
     'Search' : 'Ratnagiri',
     'CheckIn': {
-        'Date' : '16',
+        'Date' : '18',
         'Month': '07',
         'Year' : '2019',
     },
     'CheckOut': {
-        'Date': '18',
+        'Date': '20',
         'Month': '07',
         'Year': '2019',
     },
 }
+
+session = requests_html.HTMLSession()
 
 class Browser:
 
@@ -56,7 +59,7 @@ class Browser:
 
 class Bookingdotcom:
 
-    def load_page(self,config):
+    def GetResponse(self,config):
         self.config = config
         self.br = Browser(self.config['URL'])
         self.br.__select_from_by_pos__(0)
@@ -71,15 +74,15 @@ class Bookingdotcom:
         url = self.__fill_option__(url,'checkout_month',self.config['CheckOut']['Month'])
         url = self.__add_option__(url,'checkout_monthday=%s&'%self.config['CheckOut']['Date'],'checkout_month',3)
         self.url = url
-        s = requests_html.HTMLSession()
-        r = s.get(self.url)
+        r = session.get(self.url)
         r.html.render()
         self.page_data = r.text
         self.soup = BeautifulSoup(self.page_data,'html.parser')
 
-    def list_hotels(self):
         containers = self.soup.find_all('div',attrs={'sr_item_new'})
-        hotel_list = {}
+        self.hotel_list = {}
+        self.pos = 0
+        notfound = True
         for content in containers:
             content_soup = BeautifulSoup(str(content),'html.parser')
             Price_obj = content_soup.find('div',attrs={'bui-price-display__value'})
@@ -89,13 +92,47 @@ class Bookingdotcom:
             URL = i.get('href').strip()
             
             Price_soup = BeautifulSoup(str(Price_obj),'html.parser')
+            if Name != config['Hotel'] and notfound:
+                self.pos += 1
+            else:
+                notfound = False
 
             data = {
                 'URL' : self.config['URL'] + URL,
                 'Price' : Price_soup.text.strip().replace('₹\xa0',''),
             }
-            hotel_list[Name] = data
-        return hotel_list
+            self.hotel_list[Name] = data
+
+        request = session.get(self.hotel_list[config['Hotel']]['URL'])
+        soup = BeautifulSoup(request.text,'lxml')
+
+        self.RoomsDetails = []
+
+        for row in soup.find_all('tr'):
+            Accommodation_Type = row.find('span',attrs={'hprt-roomtype-icon-link'})
+            if Accommodation_Type is not None:
+                Accommodation_Type = Accommodation_Type.text.strip()
+
+                facilities = row.find_all('span',attrs={'hprt-facilities-facility'})
+                ExtraCols = row.find_all('td',attrs={'hprt-table-cell'})
+                ExtraColsData = [ col.text.strip().replace('\n','').replace('\xa0','') for col in ExtraCols[1:]]
+
+                table_row_data = {
+                    'Accommodation Type': Accommodation_Type,
+                    'Facilities' : [fac.text.strip().replace('• ','') for fac in facilities],
+                    'Max Person' : ExtraColsData[0].replace('Max persons: ',''),
+                    'Price' : ExtraColsData[1].replace(' includes taxes and charges','')
+                }
+                self.RoomsDetails.append(table_row_data)
+            
+        now = datetime.now()
+        return {
+            'RoomDetails' : self.RoomsDetails,
+            'ota' : 'Booking',
+            'runtime' : now.strftime("%y-%m-%d %H:%M:%S"),
+            'Position' : self.pos
+        }
+
 
     def __add_option__(self,url,option,after,space):
         loc = url.find(after) + len(after) + space + 1
@@ -107,12 +144,10 @@ class Bookingdotcom:
 
 class Hotel:
     def __init__(self,url):
-        session = requests_html.HTMLSession()
         response = session.get(url)
         response.html.render()
         self.page_data = response.text
         self.soup = BeautifulSoup(self.page_data, 'html.parser')
 
-hd = Bookingdotcom()
-hd.load_page(Data)
-print(hd.list_hotels())
+#hd = Bookingdotcom()
+#print(hd.GetResponse(Data))
