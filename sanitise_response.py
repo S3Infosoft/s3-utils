@@ -38,7 +38,7 @@ class OtaRunResponse(object):
         self.run_start_time = datetime.datetime.now()
     def set_rates(self, rates):
         self.rates = rates
-    def get(self):
+    def get_json(self):
         data = {
             'ota': self.ota,
             'timestamp': self.timestamp,
@@ -84,7 +84,7 @@ def sanitize_response():
 
     response = OtaRunResponse(r['ota'], r['run_time'], r['check_in'], r['check_out'], r['Status'], None)
     response.set_rates(rates)
-    print(response.get())
+    print(response.get_json())
 
 if __name__ == '__main__':
     sanitize_response()
