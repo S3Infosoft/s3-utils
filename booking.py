@@ -9,13 +9,13 @@ Data = {
     'Hotel' : 'Mango Valley Resort Ganpatipule',
     'Search' : 'Ratnagiri',
     'CheckIn': {
-        'Date' : '18',
+        'Date' : '31',
         'Month': '07',
         'Year' : '2019',
     },
     'CheckOut': {
-        'Date': '20',
-        'Month': '07',
+        'Date': '2',
+        'Month': '08',
         'Year': '2019',
     },
 }
@@ -102,36 +102,37 @@ class Bookingdotcom:
                 'Price' : Price_soup.text.strip().replace('₹\xa0',''),
             }
             self.hotel_list[Name] = data
+        try:    
+            request = session.get(self.hotel_list[config['Hotel']]['URL'])
 
-        request = session.get(self.hotel_list[config['Hotel']]['URL'])
+        except KeyError:
+            return {
+                'status' : 'FAIL'
+            }
         soup = BeautifulSoup(request.text,'lxml')
-
-        self.RoomsDetails = []
-
+        resp = {}
         for row in soup.find_all('tr'):
             Accommodation_Type = row.find('span',attrs={'hprt-roomtype-icon-link'})
             if Accommodation_Type is not None:
                 Accommodation_Type = Accommodation_Type.text.strip()
 
-                facilities = row.find_all('span',attrs={'hprt-facilities-facility'})
+#                facilities = row.find_all('span',attrs={'hprt-facilities-facility'})
                 ExtraCols = row.find_all('td',attrs={'hprt-table-cell'})
                 ExtraColsData = [ col.text.strip().replace('\n','').replace('\xa0','') for col in ExtraCols[1:]]
-
-                table_row_data = {
-                    'Accommodation Type': Accommodation_Type,
-                    'Facilities' : [fac.text.strip().replace('• ','') for fac in facilities],
-                    'Max Person' : ExtraColsData[0].replace('Max persons: ',''),
-                    'Price' : ExtraColsData[1].replace(' includes taxes and charges','')
-                }
-                self.RoomsDetails.append(table_row_data)
+                resp[Accommodation_Type] = ExtraColsData[1].replace(' includes taxes and charges','')
             
-        now = datetime.now()
-        return {
-            'RoomDetails' : self.RoomsDetails,
-            'ota' : 'Booking',
-            'runtime' : now.strftime("%y-%m-%d %H:%M:%S"),
-            'Position' : self.pos
-        }
+        now = datetime.now()       
+        resp['ota'] = 'Booking'
+        resp['run_time'] = now.strftime("%y-%m-%d %H:%M:%S")
+        resp['listed_position'] = str(self.pos)
+        resp['check_in'] = "%s/%s/%s" % (self.config['CheckIn']['Date'],
+                                         self.config['CheckIn']['Month'],
+                                         self.config['CheckIn']['Year'])
+
+        resp['check_out'] = "%s/%s/%s" % (self.config['CheckOut']['Date'],
+                                          self.config['CheckOut']['Month'],
+                                          self.config['CheckOut']['Year'])
+        return resp
 
 
     def __add_option__(self,url,option,after,space):
@@ -149,5 +150,5 @@ class Hotel:
         self.page_data = response.text
         self.soup = BeautifulSoup(self.page_data, 'html.parser')
 
-#hd = Bookingdotcom()
-#print(hd.GetResponse(Data))
+hd = Bookingdotcom()
+print(hd.GetResponse(Data))
