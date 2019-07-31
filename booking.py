@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import mechanize
 import requests_html
-import regex
 from bs4 import BeautifulSoup
 from datetime import datetime
 Data = {
