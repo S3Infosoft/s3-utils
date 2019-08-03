@@ -28,13 +28,20 @@ class MMT:
                 pass
     
     def get_response(self):
-        self.selected_url = self.AllHotels[self.data['hotel']]['url']
-        pos = self.AllHotels[self.data['hotel']]['pos']
+        try:
+            self.selected_url = self.AllHotels[self.data['hotel']]['url']
+            pos = self.AllHotels[self.data['hotel']]['pos']
+        except KeyError:
+            return {
+                'status' : 'FAIL',
+                'reason' : 'No Hotel with name : "%s"' % self.data['hotel']
+            }
         self.hotelpagecontent = self.browser.Load(self.selected_url)
         self.hotelsoup = BeautifulSoup(self.hotelpagecontent,'html.parser')
         self.content = self.hotelsoup.find_all('div',attrs={'roomWrap'})
         now = datetime.now()
         self.Response = {
+            'status' : 'OK',
             'listed_position' : pos,
             'ota' : 'MMT',
             'runtime' : now.strftime("%y-%m-%d %H:%M:%S"),
