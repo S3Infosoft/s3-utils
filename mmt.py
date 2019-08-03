@@ -4,26 +4,6 @@ from bs4 import BeautifulSoup
 import sys
 import re
 from datetime import datetime
-data = {
-    "place" : "Ganpatipule",
-    "hotel" : 'Mango Valley Resort Ganpatipule',
-    "checkin" : {
-        "date" : "01",
-        "month" : "08",
-        "year" : "2019",
-    },
-
-    "checkout" : {
-        "date" : "02",
-        "month" : "08",
-        "year" : "2019",
-    },
-
-    "rooms" : "1",
-    "guests" : "2",
-    "child" : "0",
-}
-
 
 class MMT:
     def __init__(self,data):
@@ -47,9 +27,9 @@ class MMT:
             except AttributeError:
                 pass
     
-    def GetResponse(self):
-        self.selected_url = self.AllHotels[data['hotel']]['url']
-        pos = self.AllHotels[data['hotel']]['pos']
+    def get_response(self):
+        self.selected_url = self.AllHotels[self.data['hotel']]['url']
+        pos = self.AllHotels[self.data['hotel']]['pos']
         self.hotelpagecontent = self.browser.Load(self.selected_url)
         self.hotelsoup = BeautifulSoup(self.hotelpagecontent,'html.parser')
         self.content = self.hotelsoup.find_all('div',attrs={'roomWrap'})
@@ -92,7 +72,7 @@ class MMT:
             url_data['checkout']['month'],
             url_data['checkout']['date'],
             url_data['checkout']['year'],
-            url_data['place']
+            url_data['search']
        
 
         )
@@ -109,7 +89,3 @@ class Browser:
         self.browser.get(url)
         sleep(2)
         return self.browser.page_source
-
-m = MMT(data)
-response = m.GetResponse()
-print(response)
