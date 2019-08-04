@@ -72,13 +72,14 @@ class MMT:
 
 
     def __gen_url__(self,url_data):
-        return 'https://www.makemytrip.com/hotels/hotel-listing/?checkin=%s%s%s&checkout=%s%s%s&roomStayQualifier=2e0e&city=XGP&country=IN&type=CTY&searchText=%s' % (
+        return 'https://www.makemytrip.com/hotels/hotel-listing/?checkin=%s%s%s&checkout=%s%s%s&roomStayQualifier=%s&city=XGP&country=IN&type=CTY&searchText=%s' % (
             url_data['checkin']['month'],
             url_data['checkin']['date'],
             url_data['checkin']['year'],
             url_data['checkout']['month'],
             url_data['checkout']['date'],
             url_data['checkout']['year'],
+            url_data['room_code'],
             url_data['search']
        
 
