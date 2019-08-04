@@ -20,7 +20,7 @@ booking_data = {
     "child" : "0",
 }
 
-mmt_data_correct = {
+mmt_input_valid = {
     "search" : "Ganpatipule",
     "hotel" : 'Mango Valley Resort Ganpatipule',
     "checkin" : {
@@ -44,24 +44,51 @@ mmt_data_correct = {
 
 }
 
-mmt_output_correct = {
+mmt_output_valid = {
     'check_in': '04/08/2019', 
     'check_out': '05/08/2019', 
     'Villa Oceanica Garden View': ['5,191', '5,710'], 
     'ota': 'MMT', 
     'Villa Oceanica Sea View': ['5,191', '6,229'], 
-    'listed_position': 3, 
+    'listed_position': 2, 
     'status': 'OK'
 }
 
+mmt_input_invalid = {
+    "search" : "some wrong input",
+    "hotel" : 'hotel thats not present',
+    "checkin" : {
+        "date" : "04",
+        "month" : "08",
+        "year" : "2019",
+    },
+
+    "checkout" : {
+        "date" : "05",
+        "month" : "08",
+        "year" : "2019",
+    },
+    "room_code" : "2e2e1e3e"
+}
+
+mmt_output_invalid = {
+    'status' : 'FAIL'
+}
+
 class resultTest(unittest.TestCase):
-    def test_mmt_correct(self):
-        m = MMT(mmt_data_correct)
+    def test_mmt_valid(self):
+        print("mmt test for valid input")
+        m = MMT(mmt_input_valid)
         resp = m.get_response()
-        print(resp)
         resp.pop('runtime')
-        self.assertEqual(resp,mmt_output_correct)
-        
+        self.assertEqual(resp,mmt_output_valid)
+    
+    def test_mmt_invalid(self):
+        print("mmt test for invalid input")
+        m = MMT(mmt_input_invalid)
+        resp = m.get_response()
+        resp.pop("reason")
+        self.assertEqual(resp,mmt_output_invalid)
 
 if __name__ == '__main__':
     unittest.main()
