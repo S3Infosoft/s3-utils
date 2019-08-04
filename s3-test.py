@@ -1,4 +1,4 @@
-
+import unittest
 from mmt import MMT
 
 booking_data = {
@@ -20,26 +20,48 @@ booking_data = {
     "child" : "0",
 }
 
-mmt_data = {
+mmt_data_correct = {
     "search" : "Ganpatipule",
     "hotel" : 'Mango Valley Resort Ganpatipule',
     "checkin" : {
-        "date" : "01",
+        "date" : "04",
         "month" : "08",
         "year" : "2019",
     },
 
     "checkout" : {
-        "date" : "02",
+        "date" : "05",
         "month" : "08",
         "year" : "2019",
     },
 
-    "rooms" : "1",
-    "guests" : "2",
-    "child" : "0",
+    "room_code" : "2e2e1e3e"
+    # Room Code 
+    # e = _ skip (junk)
+    # '3e2e1e3e' : 3 adults , 2 children of age 1 and 3
+    # for another room repeat code with space
+    # '3e2e1e3e4e3e1e3e5e' : 4 adults, 3 children of age 1 , 3 and 5
+
 }
 
+mmt_output_correct = {
+    'check_in': '04/08/2019', 
+    'check_out': '05/08/2019', 
+    'Villa Oceanica Garden View': ['5,191', '5,710'], 
+    'ota': 'MMT', 
+    'Villa Oceanica Sea View': ['5,191', '6,229'], 
+    'listed_position': 3, 
+    'status': 'OK'
+}
 
-m = MMT(mmt_data)
-print(m.get_response())
+class resultTest(unittest.TestCase):
+    def test_mmt_correct(self):
+        m = MMT(mmt_data_correct)
+        resp = m.get_response()
+        print(resp)
+        resp.pop('runtime')
+        self.assertEqual(resp,mmt_output_correct)
+        
+
+if __name__ == '__main__':
+    unittest.main()
