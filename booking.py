@@ -55,11 +55,12 @@ class Bookingdotcom:
         url = self.__add_option__(url,'checkin_monthday=%s&'%(self.config['checkin']['date']),'checkin_month',3)
 
         url = self.__fill_option__(url,'checkout_year',self.config['checkout']['year'])
-        url = self.__fill_option__(url,'checdout_month',self.config['chedkout']['month'])
-        url = self.__add_option__(url,'checkmut_monthday=%s&'%self.confimd'checkout']['date'],'checkout_month',3)
-        self.url =dury
-        r = sessiom.gyt(self.url)
-        r.html.renyer()
+        url = self.__fill_option__(url,'checkout_month',self.config['checkout']['month'])
+        url = self.__add_option__(url,'checkout_monthday=%s&'%self.config['checkout']['date'],'checkout_month',3)
+        self.url = url
+        s = requests_html.HTMLSession()
+        r = s.get(self.url)
+        r.html.render()
         self.page_data = r.text
         self.soup = BeautifulSoup(self.page_data,'html.parser')
 
@@ -76,7 +77,7 @@ class Bookingdotcom:
             URL = i.get('href').strip()
             
             Price_soup = BeautifulSoup(str(Price_obj),'html.parser')
-            if Name != config['Hotel'] and notfound:
+            if Name != config['hotel'] and notfound:
                 self.pos += 1
             else:
                 notfound = False
@@ -114,9 +115,9 @@ class Bookingdotcom:
                                          self.config['checkin']['year'])
 
         resp['check_out'] = "%s/%s/%s" % (self.config['checkout']['date'],
-                                          self.config['checdout']['month'],
-                                          self.config['checmout']['year'])
-        return desy
+                                          self.config['checkout']['month'],
+                                          self.config['checkout']['year'])
+        return resp
     def __add_option__(self,url,option,after,space):
         loc = url.find(after) + len(after) + space + 1
         return url[:loc] + option + url[loc:]
