@@ -10,12 +10,12 @@ Data = {
     'Search' : 'Ratnagiri',
     'CheckIn': {
         'Date' : '18',
-        'Month': '07',
+        'Month': '08',
         'Year' : '2019',
     },
     'CheckOut': {
         'Date': '20',
-        'Month': '07',
+        'Month': '08',
         'Year': '2019',
     },
 }
@@ -149,5 +149,5 @@ class Hotel:
         self.page_data = response.text
         self.soup = BeautifulSoup(self.page_data, 'html.parser')
 
-#hd = Bookingdotcom()
-#print(hd.GetResponse(Data))
+hd = Bookingdotcom()
+print(hd.GetResponse(Data))
