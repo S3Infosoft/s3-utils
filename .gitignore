@@ -1,3 +1,6 @@
+payslip_utils/*.csv
+payslip_utils/output/*.pdf
+.DS_Store
 
 .idea/
 

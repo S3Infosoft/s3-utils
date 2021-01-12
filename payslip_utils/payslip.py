@@ -1,9 +1,15 @@
+import os
 import csv
 from sys import argv
 from datetime import datetime
 from pathlib import Path
 from fpdf import FPDF
 
+# Company Name HEADER in Payslip
+COMPANY_NAME = 'ABC'
+# The values in these lists should match column names in the CSV file
+INCOME_LIST = ['Gross Salary Proposed', 'Performance Bonus', 'Overtime']
+DEDUCTIONS_LIST = ['Adjusted During the Month', 'Professional Tax']
 
 class PDF(FPDF):
     pass
@@ -56,13 +62,13 @@ def generate_pdf(emp_name, employee_record):
     increased_w = 10
 
     # The values in these lists should match column names in the CSV file
-    income_list = ['Gross Salary Proposed', 'Performance Bonus', 'Overtime']
-    deductions_list = ['Adjusted During the Month', 'Professional Tax']
+    #INCOME_LIST = ['Gross Salary Proposed', 'Performance Bonus', 'Overtime']
+    #DEDUCTIONS_LIST = ['Adjusted During the Month', 'Professional Tax']
     total_income = 0
     total_deduction = 0
-    for value in income_list:
+    for value in INCOME_LIST:
         total_income = total_income + float(employee_record[emp_name][value])
-    for value in deductions_list:
+    for value in DEDUCTIONS_LIST:
         total_deduction = total_deduction + float(employee_record[emp_name][value])
 
     pdf = PDF(orientation='P', unit='mm', format='A4')
@@ -73,7 +79,7 @@ def generate_pdf(emp_name, employee_record):
 
     # Configuration for first row
     pdf.set_fill_color(122, 255, 228)   # light blue
-    pdf.cell(col_width, row_height, txt="S3 Infosoft", border=1, fill=True, align='C')
+    pdf.cell(col_width, row_height, txt=COMPANY_NAME, border=1, fill=True, align='C')
     pdf.ln(row_height)
 
     # configuration for second row
@@ -94,7 +100,7 @@ def generate_pdf(emp_name, employee_record):
     cell_ctr = 2    # counts number of cells inserted in a row
     for info in employee_record[emp_name].items():
         # Skipping specific columns
-        if info[0] == 'Date' or info[0] in income_list or info[0] in deductions_list:
+        if info[0] == 'Date' or info[0] in INCOME_LIST or info[0] in DEDUCTIONS_LIST:
             continue
 
         if cell_ctr == 4:
@@ -126,19 +132,19 @@ def generate_pdf(emp_name, employee_record):
     pdf.set_font("Arial", size=12)
 
     while True:
-        if i > len(income_list)-1 and j > len(deductions_list)-1:
+        if i > len(INCOME_LIST)-1 and j > len(DEDUCTIONS_LIST)-1:
             break
 
-        if i > len(income_list)-1 and j <= len(deductions_list)-1:
+        if i > len(INCOME_LIST)-1 and j <= len(DEDUCTIONS_LIST)-1:
             alt = 0
-        elif j > len(deductions_list)-1 and i <= len(income_list)-1:
+        elif j > len(DEDUCTIONS_LIST)-1 and i <= len(INCOME_LIST)-1:
             alt = 1
 
         if cell_ctr == 4:
             pdf.ln(row_height)
             cell_ctr = 0
 
-        if alt == 1 and i <= len(income_list)-1:
+        if alt == 1 and i <= len(INCOME_LIST)-1:
             if cell_ctr == 2:
                 # Inserts blank cells for deduction
                 pdf.cell(col_width / 4 + increased_w, row_height, txt='', border=1)
@@ -146,20 +152,20 @@ def generate_pdf(emp_name, employee_record):
                 pdf.ln(row_height)
                 cell_ctr = 0
             else:
-                pdf.cell(col_width / 4 + increased_w, row_height, txt=income_list[i], border=1)
-                pdf.cell(col_width / 4 - increased_w, row_height, txt=employee_record[emp_name][income_list[i]], border=1, align='R')
+                pdf.cell(col_width / 4 + increased_w, row_height, txt=INCOME_LIST[i], border=1)
+                pdf.cell(col_width / 4 - increased_w, row_height, txt=employee_record[emp_name][INCOME_LIST[i]], border=1, align='R')
                 cell_ctr = cell_ctr + 2
                 alt = 0
                 i = i + 1
-        elif alt == 0 and j <= len(deductions_list)-1:
+        elif alt == 0 and j <= len(DEDUCTIONS_LIST)-1:
             if cell_ctr == 0:
                 # Inserts blank cells for income
                 pdf.cell(col_width / 4 + increased_w, row_height, txt='', border=1)
                 pdf.cell(col_width / 4 - increased_w, row_height, txt='', border=1)
                 cell_ctr = cell_ctr + 2
             else:
-                pdf.cell(col_width / 4 + increased_w, row_height, txt=deductions_list[j], border=1)
-                pdf.cell(col_width / 4 - increased_w, row_height, txt=employee_record[emp_name][deductions_list[j]], border=1, align='R')
+                pdf.cell(col_width / 4 + increased_w, row_height, txt=DEDUCTIONS_LIST[j], border=1)
+                pdf.cell(col_width / 4 - increased_w, row_height, txt=employee_record[emp_name][DEDUCTIONS_LIST[j]], border=1, align='R')
                 cell_ctr = cell_ctr + 2
                 alt = 1
                 j = j + 1
@@ -186,7 +192,8 @@ def generate_pdf(emp_name, employee_record):
     pdf.ln(row_height)
     pdf.cell(col_width / 2, row_height + 25, txt='', border=1)
     pdf.cell(col_width / 2, row_height + 25, txt='', border=1)
-    pdf.output(emp_name + '-' + str(datetime.now().month) + '-' + str(datetime.now().year) + '.pdf', 'F')
+    output_filename = 'output' + os.sep + emp_name + '-' + str(datetime.now().month) + '-' + str(datetime.now().year) + '.pdf'
+    pdf.output(output_filename, 'F')
 
 
 def main():
